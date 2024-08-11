@@ -24,7 +24,7 @@ export function SheetMenu({ children }: Props) {
       </SheetTrigger>
       <SheetContent className="sm:w-72 px-3 h-full flex flex-col" side="left">
         <SheetHeader>
-            <h1 className="font-bold text-lg">Histórico</h1>
+            <h1 className="font-bold text-lg">History</h1>
         </SheetHeader>
         <SideBarContent isOpen >{children}</SideBarContent>
       </SheetContent>

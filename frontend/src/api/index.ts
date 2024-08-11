@@ -1,41 +1,52 @@
-import { SearchApi, Topic } from "@/types";
-import { DDG_SEARCH_RESPONSE } from "@/types/requestResponse";
+import { env } from "@/config/env";
+import { SearchApi, LastSearchesApi } from "@/types";
+import { faker } from "@faker-js/faker";
+import { subHours } from "date-fns";
+const sleep = (timer = 2000) =>
+	new Promise((res) => {
+		setTimeout(() => {
+			res(timer);
+		}, timer);
+	});
+const now = new Date();
 
-export function mockSearch({ text }: SearchApi['request']): Promise<Topic[]> {
-    return fetch(`https://api.duckduckgo.com/?q=${text}&format=json`)
-        .then(r => r.json())
-        .then((data: typeof DDG_SEARCH_RESPONSE) => {
-            const { RelatedTopics } = data
-            
-            const topics: Topic[] = RelatedTopics.map(relateTopic => {
-                if("Topics" in relateTopic){
-                    return {
-                        type: 'AGGREGATED',
-                        subTopicName: relateTopic.Name,
-                        topics: (relateTopic?.Topics || []).map(subTopic => {
-                            const URL = subTopic?.Icon?.URL ?? ''
-                            return {
-                                type: 'TOPIC',
-                                url: subTopic.FirstURL,
-                                html: subTopic.Result,
-                                text: subTopic.Text,
-                                img: URL.length > 0 ? `https://duckduckgo.com${URL}` : undefined
-                            }  as Topic
-                        })
-                    } as Topic
-                }
+export async function mockLastSearches({
+	offset,
+}: LastSearchesApi["request"]): Promise<LastSearchesApi["response"]> {
+	await sleep(2000);
+	const TOTAL_PER_PAGE = 15;
 
-                const URL = relateTopic?.Icon?.URL ?? ''
+	if (offset >= 100) {
+		return {
+			topics: [],
+			meta: {
+				offset: offset,
+				next: false,
+			},
+		};
+	}
+	const lastTopics = new Array(TOTAL_PER_PAGE).fill(null).map((_, idx) => {
+		return {
+			id: `${subHours(now, offset + idx * 8).getTime()}`,
+			title: `${faker.word.verb()} ${faker.lorem.lines(1)}`,
+		};
+	});
 
-                return {
-                    type: 'TOPIC',
-                    url: relateTopic.FirstURL,
-                    html: relateTopic.Result,
-                    img: URL.length > 0 ? `https://duckduckgo.com${URL}` : undefined
-                }  as Topic
-                
-            })
+	return {
+		topics: lastTopics,
+		meta: {
+			offset: TOTAL_PER_PAGE + offset,
+			next: true,
+		},
+	};
+}
 
-            return topics
-        })
+export async function SearchApiService({
+	text,
+}: SearchApi["request"]): Promise<SearchApi["response"]> {
+	return fetch(`${env.API}/search?text=${text}`).then((r) => r.json());
+}
+
+export async function LastSearchesApiService({ offset }: LastSearchesApi["request"]): Promise<LastSearchesApi["response"]> {
+	return fetch(`${env.API}/search/history?offset=${offset}`).then((r) => r.json());
 }

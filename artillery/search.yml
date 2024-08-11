@@ -1,0 +1,27 @@
+config:
+  target: 'http://backend:3000/api'
+  phases:
+    - duration: 10
+      arrivalRate: 5         
+      rampTo: 25             
+      name: Warm up phase
+    - duration: 10
+      arrivalRate: 25        
+      rampTo: 50             
+      name: Ramp up load
+    - duration: 10
+      arrivalRate: 50        
+      rampTo: 75             
+      name: Spike phase
+
+  processor: './processor.js'
+
+scenarios:
+  - flow:
+      - loop:
+          - function: 'randomWord'
+          - get:
+              url: '/search'
+              qs:
+                text: '{{ word }}'
+        count: 10

@@ -1,14 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { mockSearch } from "@/api";
+import { LastSearchesApiService, SearchApiService } from "@/api";
 import { SearchApi } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useSearch(params: SearchApi['request']){
-    return useQuery({
-        queryKey: ['SEARCH', params.text],
-        queryFn: async (): Promise<any> => {
-            return mockSearch(params)
+export function useSearch(){
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationKey: ['SEARCH'],
+        mutationFn: async (params: SearchApi['request']): Promise<SearchApi["response"]> => {
+            return SearchApiService(params)
         },
-        enabled: params?.text.length > 0
+        onSuccess(){
+            queryClient.invalidateQueries({
+                queryKey: ['SEARCH', "LAST_SEARCHS"],
+                stale: true
+            })
+        }
     })
+}
+
+export function useLastSearchs() {
+    return useInfiniteQuery({
+        queryKey: ['SEARCH', "LAST_SEARCHS"],
+        queryFn: ({ pageParam }: { pageParam: number}) => LastSearchesApiService({ offset: pageParam }),
+        initialPageParam: 0,
+        getNextPageParam: (lastPage: { meta: { next: any; offset: any; }; }) =>
+          lastPage.meta.next ? lastPage.meta.offset : undefined,
+    });
 }

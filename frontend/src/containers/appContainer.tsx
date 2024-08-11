@@ -7,9 +7,14 @@ import { Navbar } from "@/components/foundation/navbar";
 interface Props {
   children: ReactNode;
   sidebarContent: ReactNode
+  headerContent: ReactNode
 }
 
-export function AppContainer({ children, sidebarContent }: Props) {
+export function AppContainer({ 
+  children, 
+  sidebarContent, 
+  headerContent 
+}: Props) {
   const { isOpen } = useAppStore();
 
   return (
@@ -22,8 +27,8 @@ export function AppContainer({ children, sidebarContent }: Props) {
         )}
       >
         <div>
-            <Navbar>{sidebarContent}</Navbar>
-            <div className="container pt-8 pb-8 px-4 sm:px-8">{children}</div>
+            <Navbar headerContent={headerContent}>{sidebarContent}</Navbar>
+            <div className="container pt-8 pb-8 px-4 sm:px-8 z-10 relative">{children}</div>
         </div>
       </main>
     </div>
