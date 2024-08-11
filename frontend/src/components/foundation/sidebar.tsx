@@ -23,7 +23,7 @@ export function Sidebar({ children }: Props) {
       <div className="glass gap-4 relative h-full flex flex-col px-3 py-4 overflow-y-auto shadow-md dark:shadow-zinc-800">
         <div className="flex items-center gap-4 pl-3">
           <HistoryIcon />
-          { isOpen && <h1 className="font-bold text-lg">Histórico</h1> }
+          { isOpen && <h1 className="font-bold text-lg">History</h1> }
 
         </div>
         <SideBarContent 

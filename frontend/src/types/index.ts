@@ -1,4 +1,4 @@
-type SingleTopic = {
+export type SingleTopic = {
     url: string
     img?: string
     text: string
@@ -6,10 +6,10 @@ type SingleTopic = {
     type: 'TOPIC'
 }
 
-type AggregatedTopics = {
+export type AggregatedTopics = {
     type: 'AGGREGATED'
     subTopicName?: string;
-    topics: Omit<Topic, 'topics' | 'subTopicName'>[]
+    topics: SingleTopic[]
 }
 
 export type Topic = SingleTopic | AggregatedTopics
@@ -19,7 +19,22 @@ export interface SearchApi {
         text: string
     }
     response: {
+        id: string
+        duration: number
         topics: Topic[]
-        lastSearchs: []
+        title: string
+    }
+}
+
+export interface LastSearchesApi {
+    request: {
+        offset: number
+    }
+    response: {
+        topics: { title: string, id: string }[]
+        meta: {
+            offset: number,
+            next: boolean
+        }
     }
 }

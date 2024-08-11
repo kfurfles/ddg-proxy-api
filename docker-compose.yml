@@ -1,0 +1,85 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend      
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - CACHE_TYPE=redis
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redispwd0001
+    depends_on:
+      - redis
+    networks:
+      - redis_network
+    profiles:
+      - app
+      - load-test
+  
+  redis:
+    image: redis
+    container_name: redis
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass redispwd0001
+    volumes:
+      - redis:/var/lib/redis/data
+      - ./.docker/redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - '6379:6379'
+    networks:
+      - redis_network
+    profiles:
+      - app
+      - load-test
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      REDIS_PASSWORD: redispwd0001
+      REDIS_HOST: redis
+    ports:
+      - '8081:8081'
+    depends_on:
+      - redis
+    networks:
+      - redis_network
+    profiles:
+      - app
+
+  artillery-runner:
+    image: artilleryio/artillery:latest
+    container_name: artillery-runner
+    command: run /scripts/search.yml --output /scripts/report.json 
+    volumes:
+      - ./artillery:/scripts
+    depends_on:
+      - backend
+    networks:
+      - redis_network
+    profiles:
+      - load-test
+
+  artillery-report:
+    image: artilleryio/artillery:latest
+    container_name: artillery-report
+    command: report --output /scripts/report.html /scripts/report.json
+    volumes:
+      - ./artillery:/scripts
+    profiles:
+      - report
+
+volumes:
+  redis:
+    driver: local
+
+networks:
+  redis_network:
+    driver: bridge
