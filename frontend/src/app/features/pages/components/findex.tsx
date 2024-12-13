@@ -17,7 +17,7 @@ export function Finder() {
 				<Search className="w-12 h-12" />
 				<Input
 					value={find ?? ""}
-					placeholder="Procurar nas respostas"
+					placeholder="Search the answers"
 					onChange={(e) => setFind(e.target.value)}
 				/>
 			</div>

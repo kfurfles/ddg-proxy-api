@@ -5,6 +5,7 @@ import { useSearch } from "../hooks";
 import type { SearchApi, SingleTopic } from "@/types";
 import { useDeferredValue, useEffect, useState } from "react";
 import { SearchText } from "./components/searchText";
+import { motion } from "framer-motion";
 import {
 	Carousel,
 	CarouselContent,
@@ -20,44 +21,60 @@ function TopicContent(props: SingleTopic & { variation?: "line" | "block" }) {
 
 	if (variation === "line") {
 		return (
-			<Card className="flex items-center dark:bg-zinc-50">
-				{img && (
-					<img
-						className="max-w-14 max-h-14 w-14 h-14 aspect-square"
-						src={img}
-					/>
-				)}
-				<CardContent className="p-4">
-					<CardTitle className="dark:text-background">
-						<a href={url} target="_blank">
-							<SearchText content={text} />
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.2 }}
+			>
+				<Card className="flex items-center dark:bg-zinc-50">
+					{img && (
+						<div
+							className="max-w-14 max-h-14 w-14 h-14 aspect-square bg-cover"
+							style={{ backgroundImage: `url(${img})` }}
+						/>
+					)}
+					<CardContent className="p-4">
+						<CardTitle className="dark:text-background">
+							<a href={url} target="_blank">
+								<SearchText content={text} />
+							</a>
+						</CardTitle>
+					</CardContent>
+					<div className="ml-auto">
+						<a className="p-2 flex" href={url} target="_blank">
+							<Link className="dark:text-background w-6 h-6" />
 						</a>
-					</CardTitle>
-				</CardContent>
-				<div className="ml-auto">
-					<a className="p-2 flex" href={url} target="_blank">
-						<Link className="dark:text-background w-6 h-6" />
-					</a>
-				</div>
-			</Card>
+					</div>
+				</Card>
+			</motion.div>
 		);
 	}
 
 	return (
 		<a href={url} target="_blank" className="grid">
-			<Card className="dark:bg-zinc-50 grid overflow-hidden">
-				<CardHeader className="p-0">
-					<img
-						className="aspect-square"
-						src={img ?? "https://placehold.co/600x600?text=No%20Image"}
-					/>
-				</CardHeader>
-				<CardContent className="p-4">
-					<CardTitle className="text-base dark:text-background">
-						<SearchText content={text} />
-					</CardTitle>
-				</CardContent>
-			</Card>
+			<motion.div
+				initial={{ opacity: 0, y: 20 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ delay: 0.2 }}
+			>
+				<Card className="dark:bg-zinc-50 grid overflow-hidden">
+					<CardHeader className="p-0">
+						<div
+							className="aspect-square bg-cover"
+							style={{
+								backgroundImage: `url(${
+									img ?? "https://placehold.co/600x600?text=No%20Image"
+								})`,
+							}}
+						/>
+					</CardHeader>
+					<CardContent className="p-4">
+						<CardTitle className="text-base dark:text-background">
+							<SearchText content={text} />
+						</CardTitle>
+					</CardContent>
+				</Card>
+			</motion.div>
 		</a>
 	);
 }
@@ -105,7 +122,7 @@ function SearchContent(props: Content) {
 export function SearchPage() {
 	const [search, setSearch] = useState<string>("");
 	const { mutate, data, isPending } = useSearch();
-	const { mapOcc, find = '', lastSearch } = useSearchStore();
+	const { mapOcc, find = "", lastSearch } = useSearchStore();
 
 	function onSubmit() {
 		if (search && search.length > 0) {
@@ -117,22 +134,21 @@ export function SearchPage() {
 		onSubmit();
 	}, 500);
 
-	const sum = Array.from(mapOcc.values()).reduce(
-		(acc, cur) => acc + cur,
-		0
-	);
+	const sum = Array.from(mapOcc.values()).reduce((acc, cur) => acc + cur, 0);
 
-    const totalOccurrences = useDeferredValue(sum);
+	const totalOccurrences = useDeferredValue(sum);
 
 	const duration = data?.duration ?? 0;
-	const topics = (data?.topics ?? []).sort((a) => (a.type === "TOPIC" ? -1 : 1))
+	const topics = (data?.topics ?? []).sort((a) =>
+		a.type === "TOPIC" ? -1 : 1
+	);
 
 	useEffect(() => {
-		if(lastSearch){
-			setSearch(lastSearch.title)
+		if (lastSearch) {
+			setSearch(lastSearch.title);
 			mutate({ text: lastSearch.title.trim() });
 		}
-	},[lastSearch, mutate])
+	}, [lastSearch, mutate]);
 
 	if (isPending) {
 		return (
@@ -145,11 +161,11 @@ export function SearchPage() {
 		);
 	}
 
-	const dontHasData = !!data && data.topics.length === 0
-	
+	const dontHasData = !!data && data.topics.length === 0;
+
 	return (
 		<div style={{ width: "min(800px, 90%)" }} className="mx-auto flex flex-col">
-            <form
+			<form
 				onSubmit={(e) => {
 					e.preventDefault();
 					debounced();
@@ -171,19 +187,17 @@ export function SearchPage() {
 			</form>
 			{data && (
 				<div className="mr-auto mt-1 z-10 text-sm flex justify-between w-full">
-					<div>
-						Results in {duration / 1000} seconds
-					</div>
-					{ find && (<div className="text-base">
-						Total Occurrencies: <b>{totalOccurrences}</b>
-					</div>)}
+					<div>Results in {duration / 1000} seconds</div>
+					{find && (
+						<div className="text-base">
+							Total Occurrencies: <b>{totalOccurrences}</b>
+						</div>
+					)}
 				</div>
 			)}
 
 			{dontHasData && (
-				<div className="flex justify-center my-12">
-					No Results
-				</div>
+				<div className="flex justify-center my-12">No Results</div>
 			)}
 
 			<div className="mt-24 grid grid-cols-1 gap-6">
